@@ -16,22 +16,28 @@ class Paper {
 
   init(paper) {
     const getCoordinates = (e) => {
-      if (e.type.includes('touch')) {
+      if (e.touches && e.touches.length === 1) {
         return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      } else {
+      } else if (!e.touches) {
         return { x: e.clientX, y: e.clientY };
       }
+      return null;
     };
 
     const preventDefaults = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      if (e.touches && e.touches.length === 1) {
+        e.preventDefault();  // Prevent default only for single touch
+        e.stopPropagation();
+      }
     };
 
     const movePaper = (e) => {
-      const { x, y } = getCoordinates(e);
-      preventDefaults(e);  // Prevent default scrolling on mobile
+      const coords = getCoordinates(e);
+      if (!coords || !this.holdingPaper) return;
+      const { x, y } = coords;
       
+      preventDefaults(e);  // Only prevent default for dragging, not zooming
+
       if (!this.rotating) {
         this.mouseX = x;
         this.mouseY = y;
@@ -64,13 +70,12 @@ class Paper {
       }
     };
 
-    // Add both mouse and touch event listeners
     document.addEventListener('mousemove', movePaper);
     document.addEventListener('touchmove', movePaper, { passive: false });
 
     const startPaperHold = (e) => {
-      if (this.holdingPaper) return;
-      preventDefaults(e);  // Prevent default scrolling on mobile
+      if (this.holdingPaper || (e.touches && e.touches.length > 1)) return;
+      preventDefaults(e);  // Only prevent default for dragging, not zooming
 
       this.holdingPaper = true;
       paper.style.zIndex = highestZ;
@@ -93,7 +98,6 @@ class Paper {
     const endPaperHold = (e) => {
       this.holdingPaper = false;
       this.rotating = false;
-      preventDefaults(e);
     };
 
     window.addEventListener('mouseup', endPaperHold);
@@ -101,7 +105,6 @@ class Paper {
   }
 }
 
-// Initialize the papers
 const papers = Array.from(document.querySelectorAll('.paper'));
 papers.forEach((paper) => {
   const p = new Paper();
