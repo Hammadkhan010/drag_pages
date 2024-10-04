@@ -15,7 +15,6 @@ class Paper {
   rotating = false;
 
   init(paper) {
-    // Common function to get mouse or touch coordinates
     const getCoordinates = (e) => {
       if (e.type.includes('touch')) {
         return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -24,17 +23,15 @@ class Paper {
       }
     };
 
-    // Prevent default behavior for touch events to avoid scrolling issues
     const preventDefaults = (e) => {
       e.preventDefault();
       e.stopPropagation();
     };
 
-    // Move and rotate logic
     const movePaper = (e) => {
       const { x, y } = getCoordinates(e);
-      preventDefaults(e);  // Prevent default behavior for touch events
-
+      preventDefaults(e);  // Prevent default scrolling on mobile
+      
       if (!this.rotating) {
         this.mouseX = x;
         this.mouseY = y;
@@ -67,14 +64,13 @@ class Paper {
       }
     };
 
-    // Mouse and touch move event listeners
+    // Add both mouse and touch event listeners
     document.addEventListener('mousemove', movePaper);
     document.addEventListener('touchmove', movePaper, { passive: false });
 
-    // Mouse and touch start event listener
     const startPaperHold = (e) => {
       if (this.holdingPaper) return;
-      preventDefaults(e);  // Prevent default behavior for touch events
+      preventDefaults(e);  // Prevent default scrolling on mobile
 
       this.holdingPaper = true;
       paper.style.zIndex = highestZ;
@@ -94,11 +90,10 @@ class Paper {
     paper.addEventListener('mousedown', startPaperHold);
     paper.addEventListener('touchstart', startPaperHold, { passive: false });
 
-    // Mouse and touch end event listener
     const endPaperHold = (e) => {
       this.holdingPaper = false;
       this.rotating = false;
-      preventDefaults(e);  // Prevent default behavior for touch events
+      preventDefaults(e);
     };
 
     window.addEventListener('mouseup', endPaperHold);
