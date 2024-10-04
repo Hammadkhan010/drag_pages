@@ -24,15 +24,24 @@ class Paper {
       }
     };
 
+    // Prevent default behavior for touch events to avoid scrolling issues
+    const preventDefaults = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
     // Move and rotate logic
     const movePaper = (e) => {
       const { x, y } = getCoordinates(e);
+      preventDefaults(e);  // Prevent default behavior for touch events
+
       if (!this.rotating) {
         this.mouseX = x;
         this.mouseY = y;
         this.velX = this.mouseX - this.prevMouseX;
         this.velY = this.mouseY - this.prevMouseY;
       }
+
       const dirX = x - this.mouseTouchX;
       const dirY = y - this.mouseTouchY;
       const dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
@@ -45,6 +54,7 @@ class Paper {
       if (this.rotating) {
         this.rotation = degrees;
       }
+
       if (this.holdingPaper) {
         if (!this.rotating) {
           this.currentPaperX += this.velX;
@@ -52,17 +62,20 @@ class Paper {
         }
         this.prevMouseX = this.mouseX;
         this.prevMouseY = this.mouseY;
+
         paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
       }
     };
 
     // Mouse and touch move event listeners
     document.addEventListener('mousemove', movePaper);
-    document.addEventListener('touchmove', movePaper);
+    document.addEventListener('touchmove', movePaper, { passive: false });
 
     // Mouse and touch start event listener
     const startPaperHold = (e) => {
       if (this.holdingPaper) return;
+      preventDefaults(e);  // Prevent default behavior for touch events
+
       this.holdingPaper = true;
       paper.style.zIndex = highestZ;
       highestZ += 1;
@@ -79,16 +92,17 @@ class Paper {
     };
 
     paper.addEventListener('mousedown', startPaperHold);
-    paper.addEventListener('touchstart', startPaperHold);
+    paper.addEventListener('touchstart', startPaperHold, { passive: false });
 
     // Mouse and touch end event listener
-    const endPaperHold = () => {
+    const endPaperHold = (e) => {
       this.holdingPaper = false;
       this.rotating = false;
+      preventDefaults(e);  // Prevent default behavior for touch events
     };
 
     window.addEventListener('mouseup', endPaperHold);
-    window.addEventListener('touchend', endPaperHold);
+    window.addEventListener('touchend', endPaperHold, { passive: false });
   }
 }
 
